@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+
+<project name="Java Backed Webscript Egg" default="main-DEV" basedir=".">
+	
+	<property file="build.properties"/>
+    <property name="repo.root.dir" value="${project.dir}/_repo"/>
+	
+	<target name="main-DEV" depends="dist" description="Distributes to the DEV box only"/>
+	
+	<path id="src.classpath">
+        <dirset dir="${build.dir}"/>
+		<fileset dir="${alfresco.sdk.dir}/exp" includes="**/*.jar"/>
+    </path>
+		
+    <target name="mkdir" depends="clean">
+    	<!-- build dirs -->
+    	<mkdir dir="${build.dir}"/>
+    	<mkdir dir="${build.repo.dir}"/>
+    	<mkdir dir="${build.repo.amp.dir}"/>
+    	<mkdir dir="${build.repo.amp.lib.dir}"/>
+    		
+    	<!-- build dist -->	
+    	<mkdir dir="${dist.dir}"/>
+    	<mkdir dir="${dist.repo.dir}"/>
+    	<mkdir dir="${dist.repo.jar.dir}"/>
+    	<mkdir dir="${dist.repo.amp.dir}"/>
+    </target>
+
+    <target name="clean">
+        <delete quiet="yes" includeEmptyDirs="true" dir="${build.dir}" />
+    	<delete quiet="yes" includeEmptyDirs="true" dir="${dist.dir}"/>
+    </target>
+	
+	<target name="copy" depends="mkdir">
+        <echo>Copy everything that is needed into the build dir</echo>
+		<copy todir="${build.repo.dir}">
+	    	<fileset dir="${repo.src.dir}">
+	      		<include name="**/*.java"/>
+	    	</fileset>
+	  	</copy>
+		<copy todir="${build.repo.dir}">
+	    	<fileset dir="${repo.root.dir}">
+	    		<exclude name="**/Data Dictionary/**"/>
+	    	</fileset>
+	    </copy>
+	</target>
+	
+	<target name="compile" depends="copy">
+        
+		<javac classpathref="src.classpath"
+	           srcdir="${build.repo.dir}"
+	           destdir="${build.repo.dir}"
+	           debug="true"
+	           debuglevel="lines,vars,source"/>
+	           	
+    </target>
+	
+	<target name="jar" depends="compile">
+    	<echo>Jar and move to the dist location</echo>
+        <jar destfile="${dist.repo.jar.dir}/${repo.jar.file}">
+            <zipfileset dir="${build.repo.dir}" excludes="**/amp/**" />
+        </jar>
+		
+    </target>
+            	
+	<target name="amp" depends="jar">
+    	<echo>Amp it all up and away we go</echo>
+		<copy todir="${build.repo.amp.dir}">
+	    	<fileset dir="${repo.root.dir}/amp" />
+	    </copy>
+        <copy todir="${build.repo.amp.lib.dir}">
+	    	<fileset dir="${dist.repo.jar.dir}" >
+				<include name="**/*.jar"/>
+			</fileset>
+	    </copy>
+		<zip destfile="${dist.repo.amp.dir}/${repo.amp.file}" basedir="${build.repo.amp.dir}" />
+    </target>
+
+    <target name="dist" depends="amp">
+    	<echo>Need to deploy the amp to the same location as the jar</echo>
+    	<scp todir="${dev.dist.jar.target}" trust="true" >
+    		<fileset dir="${dist.repo.jar.dir}" />
+			<fileset dir="${dist.repo.amp.dir}" />
+    	</scp>
+	</target>
+
+</project>

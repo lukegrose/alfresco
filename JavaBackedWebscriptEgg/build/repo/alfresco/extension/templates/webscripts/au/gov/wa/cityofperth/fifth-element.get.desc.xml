@@ -1,0 +1,7 @@
+<webscript>
+  <shortname>fifth-element</shortname>
+  <description>The Fifth Element</description>
+  <url>/fifth-element?defn={defn}</url>
+  <url>/fifth-element/{color}/name/{stroke}/age?a={a}</url>
+  <url>/fifth-element/{color}/name/{stroke}/age?a={a}&amp;b={b}&amp;c={c}</url>
+</webscript>

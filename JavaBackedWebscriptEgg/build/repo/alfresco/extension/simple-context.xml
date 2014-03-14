@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN'
+'http://www.springframework.org/dtd/spring-beans.dtd'>
+<beans>
+
+    <bean id="webscript.au.gov.wa.cityofperth.empire.get" 
+    	class="au.gov.wa.cityofperth.webscript.EmpireWebscriptController"
+    	parent="webscript"
+    	>
+    	
+    	<!-- 
+    	(1) in "parent=webscript", webscript is singular
+    	 -->
+    
+		<property name="nodeService">
+			<ref bean="nodeService" />
+		</property>
+		
+	</bean>
+	
+	<bean id="webscript.au.gov.wa.cityofperth.return.get" 
+    	class="au.gov.wa.cityofperth.webscript.ReturnWebscriptController"
+    	parent="webscript"
+    	>
+    
+		<property name="nodeService">
+			<ref bean="nodeService" />
+		</property>
+		
+	</bean>
+	
+	<bean id="webscript.au.gov.wa.cityofperth.fifth-element.get" 
+    	class="au.gov.wa.cityofperth.webscript.FifthElementWebscriptController"
+    	parent="webscript" />
+	
+</beans>

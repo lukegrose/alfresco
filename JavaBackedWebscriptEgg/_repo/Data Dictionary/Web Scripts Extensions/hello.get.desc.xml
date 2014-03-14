@@ -1,0 +1,5 @@
+<webscript>
+  <shortname>Hello</shortname>
+  <description>Polite greeting</description>
+  <url>/hello</url>
+</webscript>
