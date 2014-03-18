@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+
+<beans>
+
+<!-- This is the custom Spring bean configuration file for Alfresco Share.
+     Here you can add your spring beans, override the Web Script search path, override template
+     and script search path, add message property files etc -->
+
+   <!-- Add application extension messages -->
+   <bean id="itac-meeting.messages" class="org.springframework.extensions.surf.util.ResourceBundleBootstrapComponent">
+      <property name="resourceBundles">
+         <list>
+            <value>alfresco.web-extension.messages.itac-meeting</value>
+         </list>
+      </property>
+   </bean>
+
+    <!-- UI Action Evaluators -->
+    <bean id="itac-meeting.evaluator.doclib.action.isMinute"
+          class="au.gov.wa.cityofperth.documentlibrary.action.evaluator.CheckIfDocIsMinuteTypeEvaluator" 
+          init-method="init"/>
+          
+    <bean id="itac-meeting.evaluator.doclib.action.isAgenda"
+          class="au.gov.wa.cityofperth.documentlibrary.action.evaluator.CheckIfDocIsAgendaTypeEvaluator" 
+          init-method="init"/>
+
+</beans>
+

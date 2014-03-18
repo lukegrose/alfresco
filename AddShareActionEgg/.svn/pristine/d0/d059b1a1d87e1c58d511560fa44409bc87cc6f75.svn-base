@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Definition of new Model -->
+<model name="itacwf:itacProcessModel"
+    xmlns="http://www.alfresco.org/model/dictionary/1.0">
+
+    <!-- Optional meta-data about the model -->
+    <description>COP Workflow Process Model</description>
+    <author>Krupali</author>
+    <version>1.0</version>
+
+    <!-- Imports are required to allow references to definitions in other models -->
+    <imports>
+        <import uri="http://www.alfresco.org/model/dictionary/1.0"
+            prefix="d" />
+        <import uri="http://www.alfresco.org/model/bpm/1.0"
+            prefix="bpm" />
+        <import uri="http://www.alfresco.org/model/workflow/1.0"
+            prefix="wf"/>
+            <import uri="http://www.alfresco.org/model/content/1.0" prefix="cm" />
+    </imports>
+
+    <!-- Introduction of new namespaces defined by this model -->
+    <namespaces>
+        <namespace uri="http://www.alfresco.com/model/workflow/ITACProcess/1.0"
+            prefix="itacwf" />
+    </namespaces>
+    <types>
+        <type name="itacwf:submitAgendaReviewTask">
+            <title>Start Process - ITAC Agenda Review</title>
+            <parent>bpm:startTask</parent>
+            <overrides>
+            <property name="bpm:packageActionGroup">
+                    <default></default>
+                </property>
+                <property name="bpm:packageItemActionGroup">
+                    <default>read_package_item_actions</default>
+                </property>
+           
+         </overrides>
+            
+        </type>
+        <type name="itacwf:submitMinutesReviewTask">
+            <title>Start Process - ITAC Minutes Review</title>
+            <parent>bpm:startTask</parent>
+            <overrides>
+            <property name="bpm:packageActionGroup">
+                    <default></default>
+                </property>
+                <property name="bpm:packageItemActionGroup">
+                    <default>read_package_item_actions</default>
+                </property>
+           
+         </overrides>
+            
+        </type>
+        <type name="itacwf:conditionalReviewTask">
+            <title>Initiator Edits</title>
+            <parent>bpm:activitiOutcomeTask</parent>
+            <properties>
+                <property name="itacwf:conditionalReviewOutcome">
+                    <type>d:text</type>
+                    <default>Send for Re-review</default>
+                    <constraints>
+                        <constraint name="itacwf:conditionalReviewOutcomeOptions" type="LIST">
+                            <parameter name="allowedValues">
+                                <list>
+                                    <value>Conditional Approved</value>
+                                    <value>Send for Re-review</value>
+                                </list>
+                            </parameter>
+                        </constraint>
+                    </constraints>
+                </property>
+            </properties>
+            <overrides>
+                <property name="bpm:packageItemActionGroup">
+                    <default>edit_package_item_actions</default>
+                </property>
+                <property name="bpm:outcomePropertyName">
+                    <default>{http://www.alfresco.com/model/workflow/ITACProcess/1.0}conditionalReviewOutcome</default>
+                </property>
+            </overrides>
+        </type>
+        <type name="itacwf:cioReviewTask">
+        	<title>CIO Review</title>
+        	<!-- <parent>wf:activitiReviewTask</parent>-->
+        	<parent>bpm:activitiOutcomeTask</parent>
+            <properties>
+                <property name="itacwf:cioReviewOutcome">
+                    <type>d:text</type>
+                    <default>Approve</default>
+                    <constraints>
+                        <constraint name="itacwf:cioReviewOutcomeOptions" type="LIST">
+                            <parameter name="allowedValues">
+                                <list>
+                                    <value>Approve</value>
+                                    <value>Review</value>
+                                </list>
+                            </parameter>
+                        </constraint>
+                    </constraints>
+                </property>
+            </properties>
+            <overrides>
+                <property name="bpm:packageItemActionGroup">
+                    <default>edit_package_item_actions</default>
+                </property>
+                <property name="bpm:outcomePropertyName">
+                    <default>{http://www.alfresco.com/model/workflow/ITACProcess/1.0}cioReviewOutcome</default>
+                </property>
+            </overrides>
+        </type>
+        <type name="itacwf:convenorReviewTask">
+        	<title>Convenor Review</title>
+        	<!-- <parent>wf:activitiReviewTask</parent>-->
+        	<parent>bpm:activitiOutcomeTask</parent>
+            <properties>
+                <property name="itacwf:convenorReviewOutcome">
+                    <type>d:text</type>
+                    <default>Approve</default>
+                    <constraints>
+                        <constraint name="itacwf:convenorReviewOutcomeOptions" type="LIST">
+                            <parameter name="allowedValues">
+                                <list>
+                                    <value>Approve</value>
+                                    <value>Review</value>
+                                </list>
+                            </parameter>
+                        </constraint>
+                    </constraints>
+                </property>
+            </properties>
+            <overrides>
+                <property name="bpm:packageItemActionGroup">
+                    <default>edit_package_item_actions</default>
+                </property>
+                <property name="bpm:outcomePropertyName">
+                    <default>{http://www.alfresco.com/model/workflow/ITACProcess/1.0}convenorReviewOutcome</default>
+                </property>
+            </overrides>
+        
+        </type>
+        <type name="itacwf:distributeAgendaTask">
+        	<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="itacwf:distributeAgendaOutcome">
+					<type>d:text</type>
+					<default>Distribute</default>
+					<constraints>
+						<constraint type="LIST" name="itacwf:distributeAgendaOutcomeConstraint">
+							<parameter name="allowedValues">
+								<list>
+									<value>Distribute</value>
+								</list>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+	
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.alfresco.com/model/workflow/ITACProcess/1.0}distributeAgendaOutcome</default>
+				</property>
+			</overrides>
+        </type>
+ <!--    
+        <type name="twf:recordTask">
+            <parent>bpm:workflowTask</parent>
+            <properties>
+                <property name="twf:containerNumber">
+                    <type>d:text</type>
+                    <mandatory>true</mandatory> 
+                </property>
+            </properties>
+            <overrides>
+                <property name="bpm:packageActionGroup">
+                    <default></default>
+                </property>
+                <property name="bpm:packageItemActionGroup">
+                    <default>read_package_item_actions</default>
+                </property>
+                
+            </overrides>
+            
+        </type>
+        <type name="twf:LongFormTask">
+            <parent>bpm:workflowTask</parent>
+            <properties>
+                <property name="twf:requiredApprovePercent">
+                    <type>d:int</type>
+                    <mandatory>true</mandatory>
+                    <default>50</default>
+                    <constraints>
+                        <constraint type="MINMAX">
+                            <parameter name="minValue"><value>1</value></parameter>
+                            <parameter name="maxValue"><value>100</value></parameter>
+                        </constraint>
+                    </constraints>
+                </property>
+            </properties>
+            <overrides>
+                <property name="bpm:packageActionGroup">
+                    <default>add_package_item_actions</default>
+                </property>
+            </overrides>
+            <mandatory-aspects>
+                <aspect>bpm:assignees</aspect>
+                <aspect>twf:director</aspect>
+                <aspect>twf:manager</aspect>
+            </mandatory-aspects>
+        </type>
+        <type name="twf:activitiPanelReviewTask">
+            <parent>bpm:activitiOutcomeTask</parent>
+            <properties>
+                <property name="twf:panelreviewOutcome">
+                    <type>d:text</type>
+                    <default>Reject</default>
+                    <constraints>
+                        <constraint name="twf:panelreviewOutcomeOptions" type="LIST">
+                            <parameter name="allowedValues">
+                                <list>
+                                    <value>Approve</value>
+                                    <value>Reject</value>
+                                </list>
+                            </parameter>
+                        </constraint>
+                    </constraints>
+                </property>
+            </properties>
+            <overrides>
+                <property name="bpm:packageItemActionGroup">
+                    <default>edit_package_item_actions</default>
+                </property>
+                <property name="bpm:outcomePropertyName">
+                    <default>{http://www.alfresco.com/model/workflow/tenderProcess/1.0}panelreviewOutcome</default>
+                </property>
+            </overrides>
+        </type>
+        <type name="twf:activitiDirectorReviewTask">
+            <parent>bpm:activitiOutcomeTask</parent>
+            <properties>
+                <property name="twf:directorreviewOutcome">
+                    <type>d:text</type>
+                    <default>Reject</default>
+                    <constraints>
+                        <constraint name="twf:directorreviewOutcomeOptions" type="LIST">
+                            <parameter name="allowedValues">
+                                <list>
+                                    <value>Approve</value>
+                                    <value>Reject</value>
+                                </list>
+                            </parameter>
+                        </constraint>
+                    </constraints>
+                </property>
+            </properties>
+            <overrides>
+                <property name="bpm:packageItemActionGroup">
+                    <default>edit_package_item_actions</default>
+                </property>
+                <property name="bpm:outcomePropertyName">
+                    <default>{http://www.alfresco.com/model/workflow/tenderProcess/1.0}directorreviewOutcome</default>
+                </property>
+            </overrides>
+        </type>
+        <type name="twf:activitiManagerReviewTask">
+            <parent>bpm:activitiOutcomeTask</parent>
+            <properties>
+                <property name="twf:managerreviewOutcome">
+                    <type>d:text</type>
+                    <default>Reject</default>
+                    <constraints>
+                        <constraint name="twf:managerreviewOutcomeOptions" type="LIST">
+                            <parameter name="allowedValues">
+                                <list>
+                                    <value>Approve</value>
+                                    <value>Reject</value>
+                                </list>
+                            </parameter>
+                        </constraint>
+                    </constraints>
+                </property>
+            </properties>
+            <overrides>
+                <property name="bpm:packageItemActionGroup">
+                    <default>edit_package_item_actions</default>
+                </property>
+                <property name="bpm:outcomePropertyName">
+                    <default>{http://www.alfresco.com/model/workflow/tenderProcess/1.0}managerreviewOutcome</default>
+                </property>
+            </overrides>
+        </type>-->
+    </types>
+    <!-- <aspects>
+        <aspect name="twf:panelMembers">
+            <associations>
+                <association name="twf:panelMembers">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </source>
+                    <target>
+                        <class>cm:person</class>
+                        <mandatory>true</mandatory>
+                        <many>true</many>
+                    </target>
+                </association>
+            </associations>
+        </aspect>
+        <aspect name="twf:director">
+            <associations>
+                <association name="twf:director">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </source>
+                    <target>
+                        <class>cm:person</class>
+                        <mandatory>true</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
+        </aspect>
+        <aspect name="twf:manager">
+            <associations>
+                <association name="twf:manager">
+                    <source>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </source>
+                    <target>
+                        <class>cm:person</class>
+                        <mandatory>true</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
+        </aspect>
+        
+    </aspects>
+    
+    -->
+</model>
+        

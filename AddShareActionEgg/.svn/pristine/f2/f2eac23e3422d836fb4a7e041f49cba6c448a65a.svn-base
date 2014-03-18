@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+<beans>
+	
+   	<bean id="itacwf.workflowBootstrap" parent="workflowDeployer">
+	    <property name="workflowDefinitions">
+	        <list>
+	            <props>
+	                <prop key="engineId">activiti</prop>
+	                <prop key="location">alfresco/extension/workflows/agendaReviewProcess.bpmn</prop>
+	                <prop key="redeploy">false</prop>           
+	            </props>
+	            <props>
+	                <prop key="engineId">activiti</prop>
+	                <prop key="location">alfresco/extension/workflows/meetingMinutesReviewProcess.bpmn</prop>
+	                <prop key="redeploy">false</prop>           
+	            </props>
+	        </list>
+	    </property>
+	    <property name="models">
+	        <list>
+	            <value>alfresco/extension/models/ITACProcessModel.xml</value>
+	        </list>
+	    </property>
+	      
+	   <property name="labels">
+	   	<list>
+	    	<value>alfresco.extension.messages.itacProcess</value>
+	    </list>
+	   </property>
+	   
+	</bean>
+</beans>

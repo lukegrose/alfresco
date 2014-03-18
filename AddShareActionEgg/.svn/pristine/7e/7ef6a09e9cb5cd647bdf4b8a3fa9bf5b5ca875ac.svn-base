@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<model name="cop:itacContentModel" xmlns="http://www.alfresco.org/model/dictionary/1.0">
+
+	<description>Test Content Model for ITAC</description>
+	<author>Luke Grose</author>
+	<version>1.0</version>
+	<imports>
+		<import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d" />
+		<import uri="http://www.alfresco.org/model/content/1.0" prefix="cm" />
+	</imports>
+	
+	<namespaces>
+		<namespace uri="http://www.cityofperth.wa.gov.au/model/content/1.0" prefix="cop" />
+		<namespace uri="http://www.cityofperth.wa.gov.au/model/meeting/1.0" prefix="copmt" />
+	</namespaces>
+	
+	<constraints>
+		
+	</constraints>
+	
+	<types>
+	
+	 <type name="copmt:meeting">
+         <title>Meeting</title>
+         <parent>cm:folder</parent>
+         <properties>
+            <property name="copmt:description">
+               <title>Meeting Description</title>
+               <type>d:text</type>
+            </property>
+            <property name="copmt:meetingPresent">
+               <title>Meeting Present</title>
+               <type>d:text</type>
+            </property>
+            <property name="copmt:meetingApologies">
+               <title>Meeting Apologies</title>
+               <type>d:text</type>
+            </property>
+            <property name="copmt:meetingGuest">
+               <title>Meeting Guest</title>
+               <type>d:text</type>
+            </property>
+            <property name="copmt:meetingDate">
+               <title>Meeting Date</title>
+               <type>d:date</type>
+            </property>
+            <property name="copmt:meetingOpen">
+               <title>Meeting Open</title>
+               <type>d:date</type>
+            </property>
+            <property name="copmt:meetingClosed">
+               <title>Meeting Closed</title>
+               <type>d:date</type>
+            </property>
+            <property name="copmt:meetingNext">
+               <title>Meeting Next</title>
+               <type>d:date</type>
+            </property>
+         </properties>
+         <!-- 
+         <mandatory-aspects>
+            <aspect>copmt:trimmableRoot</aspect>
+         </mandatory-aspects>
+          -->
+      </type>
+      
+      <!-- DOCUMENT -->
+      <type name="copmt:document">
+         <title>Document</title>
+         <parent>cm:content</parent>
+         <properties>
+         </properties>
+      </type>
+      
+      <!-- AGENDA -->
+      <type name="copmt:agenda">
+         <title>Agenda</title>
+         <parent>copmt:document</parent>
+         <properties>
+         </properties>
+      </type>
+      
+      <!-- MINUTE -->
+      <type name="copmt:minute">
+         <title>Minute</title>
+         <parent>copmt:document</parent>
+         <properties>
+         </properties>
+      </type>
+    
+	</types>
+	
+	<!-- 
+	<aspects>
+	
+		<aspect name="copmt:trimmableRoot">
+			<title>Trimmable Root</title>
+			<properties>
+				<property name="copmt:uri">
+					<title>URI</title>
+					<type>d:text</type>
+				</property>
+				<property name="copmt:tcn">
+					<title>TCN</title>
+					<type>d:text</type>
+				</property>
+			</properties>
+		</aspect>
+		
+		<aspect name="copmt:trimmableContent">
+			<title>Trimmable Content</title>
+			<properties>
+			</properties>
+		</aspect>
+		
+	</aspects>
+	 -->
+	
+</model>

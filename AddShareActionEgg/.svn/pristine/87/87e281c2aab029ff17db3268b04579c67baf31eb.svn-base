@@ -1,0 +1,52 @@
+package au.gov.wa.cityofperth.documentlibrary.action.evaluator;
+
+import org.alfresco.error.AlfrescoRuntimeException;
+import org.alfresco.web.evaluator.BaseEvaluator;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.json.simple.JSONObject;
+
+/**
+ * Check if document that the action is being applied to has
+ * the cm:emailed aspect set.
+ *
+ * @author ecmstuff.blogspot.com
+ */
+public class CheckIfDocIsMinuteTypeEvaluator extends BaseEvaluator {
+	
+    private static final String TYPE_MINUTE = "copmt:minute";
+    
+    private static Log logger = LogFactory.getLog( CheckIfDocIsMinuteTypeEvaluator.class );
+    
+    public void init() {
+		logger.info( "INIT has been called for [CheckIfDocIsMinuteTypeEvaluator]" );
+	}
+    
+    @Override
+    public boolean evaluate(JSONObject jsonObject) {
+    	
+    	logger.trace( "Entered the evaluator" );
+    	
+    	try {
+        	
+        	String nodeType = getNodeType( jsonObject );
+        	
+        	logger.trace( "Node type [" + nodeType + "]" );
+        	
+        	if ( TYPE_MINUTE.equals( nodeType ) ) {
+        		
+        		return true;
+        		
+        	} else {
+        		
+        		return false;
+        		
+        	}
+        	
+        } catch (Exception err) {
+        	
+            throw new AlfrescoRuntimeException( "JSONException whilst running action evaluator: " + err.getMessage() );
+            
+        }
+    }
+}

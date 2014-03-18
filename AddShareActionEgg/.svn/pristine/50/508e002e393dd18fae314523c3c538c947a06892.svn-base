@@ -1,0 +1,66 @@
+<alfresco-config>
+
+    <config replace="true">
+        <flags>
+            <!--
+               Developer debugging setting to turn on DEBUG mode for client scripts in the browser
+            -->
+            <client-debug>true</client-debug>
+            <!--
+               LOGGING can always be toggled at runtime when in DEBUG mode (Ctrl, Ctrl, Shift, Shift).
+               This flag automatically activates logging on page load.
+            -->
+            <client-debug-autologging>true</client-debug-autologging>
+        </flags>
+    </config>
+    
+    <config evaluator="string-compare" condition="DocumentLibrary">
+        <types>
+            <type name="cm:content">
+                <subtype name="copmt:document"/>
+                <subtype name="copmt:minute"/>
+             	<subtype name="copmt:agenda"/>
+            </type>
+            <type name="copmt:document">
+                <subtype name="copmt:minute"/>
+             	<subtype name="copmt:agenda"/>
+            </type>
+        </types>
+    </config>
+    
+    <config evaluator="string-compare" condition="DocLibActions">
+        <actions>
+            <action id="itac-meeting.doclib.action.invokeAgendaWorkflow"
+                    icon="workflow"
+                    type="javascript"
+                    label="actions.itac-meeting.invokeAgendaWorkflow">
+                <param name="function">onActionInvokeWorkflow</param>
+                <evaluator>itac-meeting.evaluator.doclib.action.isAgenda</evaluator>
+            </action>
+            <action id="itac-meeting.doclib.action.invokeMinuteWorkflow"
+                    icon="workflow"
+                    type="javascript"
+                    label="actions.itac-meeting.invokeMinuteWorkflow">
+                <param name="function">onActionInvokeWorkflow</param>
+                <evaluator>itac-meeting.evaluator.doclib.action.isMinute</evaluator>
+            </action>
+        </actions>
+        <actionGroups>
+            <actionGroup id="document-browse">
+                <action index="401" id="itac-meeting.doclib.action.invokeAgendaWorkflow"/>
+                <action index="402" id="itac-meeting.doclib.action.invokeMinuteWorkflow"/>
+            </actionGroup>
+            <actionGroup id="document-details">
+                <action index="401" id="itac-meeting.doclib.action.invokeAgendaWorkflow"/>
+                <action index="402" id="itac-meeting.doclib.action.invokeMinuteWorkflow"/>
+            </actionGroup>
+        </actionGroups>
+    </config>
+    
+    <config evaluator="string-compare" condition="DocLibCustom" replace="true">
+        <dependencies>
+            <js src="components/documentlibrary/itac-meeting-actions.js"/>
+        </dependencies>
+    </config>
+    
+</alfresco-config>

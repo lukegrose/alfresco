@@ -1,0 +1,5 @@
+<webscript>
+  <shortname>Add Share Action Egg</shortname>
+  <description>A basic example of adding actions to Share</description>
+  <url>/add-share-action?msg={msg}</url>
+</webscript>

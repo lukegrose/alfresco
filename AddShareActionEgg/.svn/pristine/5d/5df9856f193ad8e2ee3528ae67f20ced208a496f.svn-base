@@ -1,0 +1,75 @@
+/**
+ * Document Browse and Details page email actions
+ *
+ * @author ecmstuff.blogspot.com
+ */
+(function() {
+    
+	YAHOO.Bubbling.fire("registerAction", {
+		
+		actionName: "_callWorkflowWebscript",
+		fn: function dlA_callWorkflowWebscript(file) {
+
+			console.log( "About to set custom properties [" + file.nodeRef + "]" );
+			var url = "/alfresco/service/invoke-itac-workflow?nodeRef=" + file.nodeRef;
+			console.log( "The url to be called [" + url + "]" );
+			
+			Alfresco.util.Ajax.request({
+				url: url,
+				method: 'get',
+				successCallback: {
+				
+				},
+				successMessage: "Workflow has been started successfully",
+				failureMessage: "Couldn't start workflow",
+				failureCallback: {
+					
+				}
+				
+			});
+			
+		}
+	
+    });
+    
+	YAHOO.Bubbling.fire("registerAction",
+	{
+		actionName: "onActionInvokeWorkflow",
+		fn: function dlA_onActionInvokeWorkflow(file) 
+	    {
+				var me = this;
+			
+				Alfresco.util.PopupManager.displayPrompt(
+	        	{
+	        	     title: this.msg("Start ITAC Agenda Workflow"),
+	        	     text: this.msg("Are you sure?"),
+	        	     buttons: [
+	        	     {
+	        	    	 
+	        	    	 text: this.msg("Yes"),
+	        	         handler: function dlA_onActionDelete_delete()
+	        	         {
+	        	        	 
+	        	        	 this.destroy();
+	        	             
+	        	        	 me._callWorkflowWebscript.call(me, file);
+
+    	 		          }
+	        	      },
+	        	      {
+	        	          text: this.msg("button.cancel"),
+	        	          handler: function dlA_onActionDelete_cancel()
+	        	          {
+	        	              this.destroy();
+	        	          },
+	        	          isDefault: true
+	        	      }]
+	        	});
+				
+			}
+	});
+	
+	
+})();
+
+	

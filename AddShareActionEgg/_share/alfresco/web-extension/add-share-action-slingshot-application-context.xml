@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+
+<beans>
+
+<!-- This is the custom Spring bean configuration file for Alfresco Share.
+     Here you can add your spring beans, override the Web Script search path, override template
+     and script search path, add message property files etc -->
+
+	<bean id="add.share.action.config" class="org.springframework.extensions.config.ConfigBootstrap" init-method="register">
+		<property name="configService" ref="web.config"/>
+		<property name="configs">
+			<list>
+				<value>classpath:alfresco/web-extension/share-config-add-share-action.xml</value>
+			</list>
+		</property> 
+	</bean>
+
+   <!-- Add application extension messages -->
+   <bean id="add-share-action.messages" class="org.springframework.extensions.surf.util.ResourceBundleBootstrapComponent">
+      <property name="resourceBundles">
+         <list>
+            <value>alfresco.web-extension.messages.add-share-action</value>
+         </list>
+      </property>
+   </bean>
+
+    <!-- UI Action Evaluators -->
+    <bean id="add-share-action.evaluator.doclib.action"
+          class="com.grose.luke.documentlibrary.action.evaluator.AddShareActionEggEvaluator" 
+          init-method="init"/>
+          
+</beans>
+

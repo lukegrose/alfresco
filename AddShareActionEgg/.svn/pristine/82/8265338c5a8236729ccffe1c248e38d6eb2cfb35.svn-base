@@ -1,0 +1,44 @@
+<html>
+   <head>
+      <style type="text/css"><!--
+      body
+      {
+         font-family: Arial, sans-serif;
+         font-size: 14px;
+         color: #4c4c4c;
+      }
+      
+      a, a:visited
+      {
+         color: #0072cf;
+      }
+      --></style>
+   </head>
+Dear Members,<br/><br/>
+
+Attached is an agenda for the meeting to be held on <#if args.meetingDate??> ${args.meetingDate} </#if>. The minutes of the last meeting and relevant attachments are linked to the agenda. <br/><br/>
+
+<table style=" border: 1px solid #aaaaaa;">
+<tr><td style="font-size:16px">
+${args.docName}
+</td></tr>
+<tr><td>
+View:
+</td></tr>
+<tr><td>
+<a href="${shareUrl}/proxy/alfresco/api/node/content/workspace/SpacesStore/${args.docId}/${args.docName}"> Click Here</a>
+</td></tr>
+<tr><td>
+Download:
+</td></tr>
+<tr><td>
+<a href="${shareUrl}/proxy/alfresco/api/node/content/workspace/SpacesStore/${args.docId}/${args.docName}?a=true"> Click here</a>
+</td></tr>
+</table> 
+<br/>
+If you have any problems, please contact Anne-Marie Langdon on Tel: +61 8 9461 3631 or Email: anne-marie.langdon@cityofperth.wa.gov.au<br/><br/>
+
+See you <u><b>at 2.00pm in the Lower Ground Large Meeting Room LG03</b></u><br/><br/>
+
+ </body>
+</html>

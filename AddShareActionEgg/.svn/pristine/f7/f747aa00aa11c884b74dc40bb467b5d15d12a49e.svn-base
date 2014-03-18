@@ -1,0 +1,52 @@
+# Build project top directories
+#
+project.dir=.
+repo.root.dir=${project.dir}/_repo
+share.root.dir=${project.dir}/_share
+build.dir=${project.dir}/build
+dist.dir=${project.dir}/dist
+
+# repo build dirs
+#
+build.repo.dir=${build.dir}/repo
+build.repo.jar.dir=${build.repo.dir}/jar
+build.repo.amp.dir=${build.repo.dir}/amp
+build.repo.amp.lib.dir=${build.repo.amp.dir}/lib
+
+# share build dirs
+#
+build.share.dir=${build.dir}/share
+build.share.jar.dir=${build.share.dir}/jar
+build.share.amp.dir=${build.share.dir}/amp
+build.share.amp.lib.dir=${build.share.amp.dir}/lib
+
+# repo dist dirs 
+#
+dist.repo.dir=${dist.dir}/repo
+dist.repo.jar.dir=${dist.repo.dir}/jar
+dist.repo.amp.dir=${dist.repo.dir}/amp
+
+# share dist dirs
+dist.share.dir=${dist.dir}/share
+dist.share.jar.dir=${dist.share.dir}/jar
+dist.share.amp.dir=${dist.share.dir}/amp
+
+# source location
+#
+repo.src.dir=${project.dir}/repo-src
+alfresco.sdk.dir=C:/Users/lgrose/cop/Alfresco-SDK/4.2.0
+repo.ext.dir=${build.dir}/alfresco/extension
+
+# Articfacts for distribution
+#
+version=1.0.0
+repo.version=repo-${version}
+share.version=share-${version}
+repo.jar.file=itac-meeting-${repo.version}.jar
+repo.amp.file=itac-meeting-${repo.version}.amp
+share.jar.file=itac-meeting-${share.version}.jar
+share.amp.file=itac-meeting-${share.version}.amp
+
+# Deployment Location
+#
+dev.dist.jar.target=luke:hello51@172.20.13.34:/home/luke/dist/itac-meeting

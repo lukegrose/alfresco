@@ -1,0 +1,4 @@
+module.id=au.gov.wa.cityofperth.itac-meeting
+module.title=Itac Meeting
+module.description=Implements the workflows for the Itac minutes and agenda feature
+module.version=1.0.1

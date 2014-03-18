@@ -1,0 +1,5 @@
+<webscript>
+  <shortname>invoke-itac-workflow</shortname>
+  <description>Invokes the ITAC Workflow</description>
+  <url>/invoke-itac-workflow?nodeRef={nodeRef}</url>
+</webscript>

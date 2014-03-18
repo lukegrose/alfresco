@@ -1,0 +1,5 @@
+actions.itac-meeting.invokeAgendaWorkflow=Start ITAC Agenda Workflow
+actions.itac-meeting.invokeMinuteWorkflow=Start ITAC Minute Workflow
+type.copmt_document=Document
+type.copmt_minute=Minute
+type.copmt_agenda=Agenda

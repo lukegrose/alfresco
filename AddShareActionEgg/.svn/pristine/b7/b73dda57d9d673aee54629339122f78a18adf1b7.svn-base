@@ -1,0 +1,228 @@
+package au.gov.wa.cityofperth.webscript;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.alfresco.model.ContentModel;
+import org.alfresco.repo.invitation.WorkflowModelModeratedInvitation;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
+import org.alfresco.repo.workflow.WorkflowModel;
+import org.alfresco.service.cmr.invitation.InvitationException;
+import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.workflow.WorkflowDefinition;
+import org.alfresco.service.cmr.workflow.WorkflowInstance;
+import org.alfresco.service.cmr.workflow.WorkflowPath;
+import org.alfresco.service.cmr.workflow.WorkflowService;
+import org.alfresco.service.cmr.workflow.WorkflowTask;
+import org.alfresco.service.namespace.QName;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.extensions.webscripts.AbstractWebScript;
+import org.springframework.extensions.webscripts.Status;
+import org.springframework.extensions.webscripts.WebScriptException;
+import org.springframework.extensions.webscripts.WebScriptRequest;
+import org.springframework.extensions.webscripts.WebScriptResponse;
+
+public class InvokeItacWorkflow extends AbstractWebScript {
+	
+    private static Log logger = LogFactory.getLog(InvokeItacWorkflow.class);
+
+    private NodeService nodeService;
+    private WorkflowService workflowService;
+
+    public void setNodeService(NodeService nodeService) {
+        this.nodeService = nodeService;
+    }
+
+    public void setWorkflowService(WorkflowService workflowService) {
+    	logger.trace( "Workflow service is being set in the webscript" );
+    	this.workflowService = workflowService;
+    }
+    
+    public void execute(final WebScriptRequest req, final WebScriptResponse res)
+            throws IOException {
+    	
+    	String result = AuthenticationUtil.runAs(
+    			
+    			new RunAsWork<String>() {
+    				
+    				public String doWork() throws Exception {
+    	
+				    	logger.trace( "About to invoke a workflow" );
+				    	
+				    	String nodeRefId = req.getParameter( "nodeRef" );
+				    	
+				    	if ( nodeRefId == null ) {
+				    		
+				    		throw new WebScriptException(
+				    				Status.STATUS_BAD_REQUEST,
+				    			    "The NodeRef parameter is missing"
+				    		);
+				    		
+				    	}
+				    	
+				    	for ( String paramName : req.getParameterNames() ) {
+				    		
+				    		logger.trace( "paramName [" + paramName + "]" );
+				    		
+				    		for ( String paramValue : req.getParameterValues( paramName ) ) {
+					    		
+				    			logger.trace( "paramValue [" + paramValue + "]" );
+				    			
+					    	}
+				    		
+				    	}
+				    	
+				    	logger.trace( "The nodeRefId is [" + nodeRefId + "]" );
+				    	
+				    	List<NodeRef> nodeRefs = NodeRef.getNodeRefs( nodeRefId );
+				    	
+				    	if ( nodeRefs.size() < 1 ) {
+				    		
+				    		logger.trace( "No NodeRefs returned for [" + nodeRefId + "]" );
+				    		
+				    		throw new WebScriptException(
+				    				Status.STATUS_BAD_REQUEST,
+				    			    "NodeRef [" + nodeRefId + "] not found"
+				    		);
+				    		
+				    	}
+				    	
+				    	final NodeRef ref = nodeRefs.get( 0 );
+				    	
+				    	if ( ref == null ) {
+				    		
+				    		logger.trace( "NodeRef id [" + nodeRefId + "] does not exist" );
+				    		
+				    		throw new WebScriptException(
+				    				Status.STATUS_BAD_REQUEST,
+				    			    "Unable to retrieve NodeRef [" + nodeRefId + "]"
+				    		);
+				    		
+				    	}
+				    	
+				    	String localQnameType = nodeService.getType( ref ).getLocalName();
+				    	
+				    	String workflowId = null;
+				    	
+				    	if ( "agenda".equals( localQnameType ) ) {
+				    		
+				    		logger.trace( "About to invoke workflow [AGENDA]" );
+				    		workflowId = "activiti$agendaReviewProcess";
+				    		invokeWorkflow( ref, workflowId, "ITAC Agenda Workflow - " + nodeService.getProperty( ref, ContentModel.PROP_NAME) );
+				    		
+				    	} else if ( "minute".equals( localQnameType ) ) {
+				    		
+				    		logger.trace( "About to invoke workflow [MINUTE]" );
+				    		workflowId = "activiti$meetingMinutesReviewProcess";
+				    		invokeWorkflow( ref, workflowId, "ITAC Minute Workflow - " + nodeService.getProperty( ref, ContentModel.PROP_NAME) );
+				    		
+				    	} else {
+				    		
+				    		logger.trace( "No workflow for type: id [" + localQnameType + "]" );
+				    		
+				    		throw new WebScriptException(
+				    				Status.STATUS_BAD_REQUEST,
+				    			    "Unable to start workflow, no workflow for type [" + localQnameType + "]"
+				    		);
+				    		
+				    	}
+				    	
+						return  "success";
+						
+					}
+	
+				 }, AuthenticationUtil.getAdminUserName() );
+    	
+    		logger.trace( "The result of the webscript was [" + result + "]" );
+    }
+        
+    private void invokeWorkflow(final NodeRef ref, final String wfName, final String wfDesc) {
+    	
+		try {
+	        
+    		logger.trace( "About to get workflow by id " + wfName );
+    		
+    		WorkflowDefinition wfDefn = workflowService.getDefinitionByName( wfName );
+    		
+    		if ( wfDefn == null ) {
+    			
+    			Object objs[] = { WorkflowModelModeratedInvitation.WORKFLOW_DEFINITION_NAME };
+    			
+    			throw new InvitationException("invitation.error.noworkflow", objs);
+    				
+    		}
+    		
+    		logger.trace( "Workflow Definition: name [" + wfDefn.getName() + "], id [" + wfDefn.getId() + "], " +
+    				"description [" + wfDefn.getDescription() + "]" );
+		
+			Map<QName, Serializable> workflowProps = new HashMap<QName, Serializable>();
+    		workflowProps.put( WorkflowModel.PROP_WORKFLOW_DESCRIPTION, wfDesc );
+    		workflowProps.put( WorkflowModel.PROP_SEND_EMAIL_NOTIFICATIONS, true );
+    		
+    		NodeRef workflowPackage = workflowService.createPackage(null);
+    		
+    		logger.trace( "1" );
+    		
+            ChildAssociationRef childAssoc = nodeService.getPrimaryParent( ref );
+            
+            logger.trace( "2" );
+            
+            nodeService.addChild(workflowPackage, ref, WorkflowModel.ASSOC_PACKAGE_CONTAINS, childAssoc.getQName());
+            
+            logger.trace( "3" );
+            
+    		workflowProps.put( WorkflowModel.ASSOC_PACKAGE, workflowPackage );
+    		
+    		logger.trace( "4" );
+    		
+    		WorkflowPath wfPath = workflowService.startWorkflow( wfDefn.getId(), workflowProps );
+    		
+    		logger.trace( "5" );
+    		
+    		WorkflowInstance wfInst = wfPath.getInstance();
+    		
+    		logger.trace( "6" );
+    		
+    		logger.trace( "wfInst desc: " + wfInst.getDescription() );
+    		logger.trace( "wfInst initiator: " + wfInst.getInitiator() );
+    		
+    		String wfPathId = wfPath.getId();
+    		
+    		logger.trace( "7" );
+    			
+    		List<WorkflowTask> wfTasks = workflowService.getTasksForWorkflowPath( wfPathId );
+    		
+    		logger.trace( "8" );
+
+			if ( wfTasks.size() == 0 ) {
+				
+				logger.trace( "9" );
+				Object objs[] = { WorkflowModelModeratedInvitation.WORKFLOW_DEFINITION_NAME };
+				throw new InvitationException("invitation.error.notasks", objs);
+				
+			}
+
+			logger.trace( "10" );
+			
+			WorkflowTask wfStartTask = wfTasks.get( 0 );
+			
+			logger.trace( "11" );
+			
+			workflowService.endTask( wfStartTask.getId(), null );
+			
+			logger.trace( "12" );
+			
+		} catch (Exception e) {
+    		
+    		logger.error( "This is end, my friend the end..." + e.getMessage() + ", my type is: " + e.getClass().getName() );
+    		
+    	}
+	}
+}

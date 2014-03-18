@@ -1,0 +1,43 @@
+<alfresco-config>
+
+    <config replace="true">
+        <flags>
+            <!--
+               Developer debugging setting to turn on DEBUG mode for client scripts in the browser
+            -->
+            <client-debug>true</client-debug>
+            <!--
+               LOGGING can always be toggled at runtime when in DEBUG mode (Ctrl, Ctrl, Shift, Shift).
+               This flag automatically activates logging on page load.
+            -->
+            <client-debug-autologging>true</client-debug-autologging>
+        </flags>
+    </config>
+    
+    <config evaluator="string-compare" condition="DocLibActions">
+        <actions>
+            <action id="add-share-action.doclib.action.addShareActionEgg"
+                    icon="workflow"
+                    type="javascript"
+                    label="actions.add-share-action.label">
+                <param name="function">onActionAddShareActionEgg</param>
+                <evaluator>add-share-action.evaluator.doclib.action</evaluator>
+            </action>
+        </actions>
+        <actionGroups>
+            <actionGroup id="document-browse">
+                <action index="501" id="add-share-action.doclib.action.addShareActionEgg"/>
+            </actionGroup>
+            <actionGroup id="document-details">
+                <action index="501" id="add-share-action.doclib.action.addShareActionEgg"/>
+            </actionGroup>
+        </actionGroups>
+    </config>
+    
+    <config evaluator="string-compare" condition="DocLibCustom">
+        <dependencies>
+            <js src="components/documentlibrary/add-share-egg-actions.js"/>
+        </dependencies>
+    </config>
+    
+</alfresco-config>

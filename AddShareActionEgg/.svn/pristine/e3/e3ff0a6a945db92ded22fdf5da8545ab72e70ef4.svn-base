@@ -1,0 +1,596 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.alfresco.com/model/workflow/ITACProcess/1.0">
+  <process id="agendaReviewProcess" name="ITAC - Agenda Review Process" isExecutable="true">
+    <extensionElements>
+      <activiti:executionListener event="start" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+        <activiti:field name="script">
+          <activiti:string>logger.log("start event called");
+execution.setVariable("wfstatus","start");</activiti:string>
+        </activiti:field>
+        <activiti:field name="runAs">
+          <activiti:string>admin</activiti:string>
+        </activiti:field>
+      </activiti:executionListener>
+      <activiti:executionListener event="end" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+        <activiti:field name="script">
+          <activiti:string>logger.log("end event called");
+var agenda = bpm_package.children[0];
+var status = execution.getVariable("wfstatus");
+assignee1 = people.getPerson("jon");
+assignee2 = people.getPerson("robert");
+if(status=="start"){
+var mail = actions.create("mail");   
+mail.parameters.to = assignee1.properties["cm:email"];   
+mail.parameters.subject = "ITAC Agenda Review workflow has been cancelled";   
+mail.parameters.from =initiator.properties.email;   
+mail.parameters.body="ITAC Agenda Review workflow has been cancelled for doc "+angenda.name;
+mail.execute(agenda); 
+var mail = actions.create("mail");   
+mail.parameters.to = assignee2.properties["cm:email"];   
+mail.parameters.subject = "ITAC Agenda Review workflow has been cancelled";   
+mail.parameters.from =initiator.properties.email;   
+mail.parameters.body="ITAC Agenda Review workflow has been cancelled for doc "+angenda.name;
+mail.execute(agenda); 
+}</activiti:string>
+        </activiti:field>
+        <activiti:field name="runAs">
+          <activiti:string>admin</activiti:string>
+        </activiti:field>
+      </activiti:executionListener>
+    </extensionElements>
+    <startEvent id="alfrescoStartevent1" name="Alfresco start" activiti:formKey="itacwf:submitAgendaReviewTask"></startEvent>
+    <sequenceFlow id="flow1" sourceRef="alfrescoStartevent1" targetRef="usertask1"></sequenceFlow>
+    <exclusiveGateway id="exclusivegateway1" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow2" sourceRef="usertask1" targetRef="exclusivegateway1"></sequenceFlow>
+    <userTask id="alfrescoUsertask2" name="Convenor Review" activiti:assignee="robert" activiti:formKey="itacwf:convenorReviewTask">
+      <extensionElements>
+        <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string>execution.setVariable('wf_reviewOutcome', task.getVariable('itacwf_convenorReviewOutcome'));</activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+        <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string>var taskId = "activiti$" + task.getId();
+var taskComment = workflow.getTask(taskId).getProperties()["bpm:comment"];
+logger.log(" @@@ Convenor Comment @@@ " + taskComment);
+if(taskComment){
+agenda= bpm_package.children[0];
+logger.log("********** "+agenda.name);
+if(!agenda.hasAspect("fm:discussable")) { agenda.addAspect("fm:discussable"); }
+if(!agenda.hasAspect("fm:commentsRollup")) { agenda.addAspect("fm:commentsRollup"); }
+ 
+var forums = agenda.childAssocs["fm:discussion"];
+var forum;
+if(forums == null) {
+  forum = agenda.createNode(agenda.properties.name+" discussion", "fm:forum", "fm:discussion");
+}
+else {
+  forum = forums[0];
+}
+logger.log(forum);
+ 
+var topics = forum.childAssocs["cm:contains"];
+var topic;
+if(topics == null) {
+  topic = forum.createNode("Comments", "fm:topic", [], "cm:contains", "cm:Comments");
+}
+else {
+  topic = topics[0];
+}
+logger.log(topic);
+ 
+var now = new Date();
+var name = "comment-"+now.getTime();
+var mypost = topic.createNode(name, "fm:post", [], "cm:contains", name);
+ 
+mypost.content = "&lt;p&gt;"+taskComment+"&lt;p&gt;";
+}</activiti:string>
+          </activiti:field>
+          <activiti:field name="runAs">
+            <activiti:string>admin</activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+        <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string>if (typeof bpm_workflowDueDate != 'undefined') task.setVariableLocal('bpm_dueDate', bpm_workflowDueDate);
+                        if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;</activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="flow3" name="Approved by CIO" sourceRef="exclusivegateway1" targetRef="alfrescoUsertask2">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${wf_reviewOutcome == 'Approve'}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask id="alfrescoUsertask3" name="Initiator Edits" activiti:assignee="${initiator.properties.userName}" activiti:formKey="itacwf:conditionalReviewTask">
+      <extensionElements>
+        <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string>if (typeof bpm_workflowDueDate != 'undefined') task.setVariableLocal('bpm_dueDate', bpm_workflowDueDate);
+                        if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;
+execution.setVariable('wf_reviewOutcome',"");</activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+        <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string>execution.setVariable('wf_reviewOutcome', task.getVariable('itacwf_conditionalReviewOutcome'));</activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+        <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string>var taskId = "activiti$" + task.getId();
+var taskComment = workflow.getTask(taskId).getProperties()["bpm:comment"];
+logger.log(" @@@ Initiator's Comment @@@ " + taskComment);
+if(taskComment){
+agenda= bpm_package.children[0];
+logger.log("********** "+agenda.name);
+if(!agenda.hasAspect("fm:discussable")) { agenda.addAspect("fm:discussable"); }
+if(!agenda.hasAspect("fm:commentsRollup")) { agenda.addAspect("fm:commentsRollup"); }
+ 
+var forums = agenda.childAssocs["fm:discussion"];
+var forum;
+if(forums == null) {
+  forum = agenda.createNode(agenda.properties.name+" discussion", "fm:forum", "fm:discussion");
+}
+else {
+  forum = forums[0];
+}
+logger.log(forum);
+ 
+var topics = forum.childAssocs["cm:contains"];
+var topic;
+if(topics == null) {
+  topic = forum.createNode("Comments", "fm:topic", [], "cm:contains", "cm:Comments");
+}
+else {
+  topic = topics[0];
+}
+logger.log(topic);
+ 
+var now = new Date();
+var name = "comment-"+now.getTime();
+var mypost = topic.createNode(name, "fm:post", [], "cm:contains", name);
+ 
+mypost.content = "&lt;p&gt;"+taskComment+"&lt;p&gt;";
+}</activiti:string>
+          </activiti:field>
+          <activiti:field name="runAs">
+            <activiti:string>admin</activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="flow4" name="Rejected by CIO" sourceRef="exclusivegateway1" targetRef="alfrescoUsertask3">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${wf_reviewOutcome == 'Review'}]]></conditionExpression>
+    </sequenceFlow>
+    <exclusiveGateway id="exclusivegateway2" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow5" sourceRef="alfrescoUsertask3" targetRef="exclusivegateway2"></sequenceFlow>
+    <sequenceFlow id="flow6" name="Send for rereview" sourceRef="exclusivegateway2" targetRef="usertask1">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${wf_reviewOutcome == 'Send for Re-review'}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow7" name="Conditionally approved and send for Convenor review" sourceRef="exclusivegateway2" targetRef="alfrescoUsertask2">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${wf_reviewOutcome == 'Conditional Approved'}]]></conditionExpression>
+    </sequenceFlow>
+    <exclusiveGateway id="exclusivegateway3" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow8" sourceRef="alfrescoUsertask2" targetRef="exclusivegateway3"></sequenceFlow>
+    <sequenceFlow id="flow9" name="Rejected by Convenor" sourceRef="exclusivegateway3" targetRef="alfrescoUsertask4">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${wf_reviewOutcome == 'Review'}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask id="alfrescoUsertask4" name="Initiator Edits" activiti:assignee="${initiator.properties.userName}" activiti:formKey="itacwf:conditionalReviewTask">
+      <extensionElements>
+        <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string>if (typeof bpm_workflowDueDate != 'undefined') task.setVariableLocal('bpm_dueDate', bpm_workflowDueDate);
+                        if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;
+execution.setVariable('wf_reviewOutcome',"");</activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+        <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string>execution.setVariable('wf_reviewOutcome', task.getVariable('itacwf_conditionalReviewOutcome'));</activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+        <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string>var taskId = "activiti$" + task.getId();
+var taskComment = workflow.getTask(taskId).getProperties()["bpm:comment"];
+logger.log(" @@@ Initiator's Comment @@@ " + taskComment);
+if(taskComment){
+agenda= bpm_package.children[0];
+logger.log("********** "+agenda.name);
+if(!agenda.hasAspect("fm:discussable")) { agenda.addAspect("fm:discussable"); }
+if(!agenda.hasAspect("fm:commentsRollup")) { agenda.addAspect("fm:commentsRollup"); }
+ 
+var forums = agenda.childAssocs["fm:discussion"];
+var forum;
+if(forums == null) {
+  forum = agenda.createNode(agenda.properties.name+" discussion", "fm:forum", "fm:discussion");
+}
+else {
+  forum = forums[0];
+}
+logger.log(forum);
+ 
+var topics = forum.childAssocs["cm:contains"];
+var topic;
+if(topics == null) {
+  topic = forum.createNode("Comments", "fm:topic", [], "cm:contains", "cm:Comments");
+}
+else {
+  topic = topics[0];
+}
+logger.log(topic);
+ 
+var now = new Date();
+var name = "comment-"+now.getTime();
+var mypost = topic.createNode(name, "fm:post", [], "cm:contains", name);
+ 
+mypost.content = "&lt;p&gt;"+taskComment+"&lt;p&gt;";
+}</activiti:string>
+          </activiti:field>
+          <activiti:field name="runAs">
+            <activiti:string>admin</activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="exclusivegateway4" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow10" sourceRef="alfrescoUsertask4" targetRef="exclusivegateway4"></sequenceFlow>
+    <sequenceFlow id="flow11" name="Send for rereview" sourceRef="exclusivegateway4" targetRef="alfrescoUsertask2">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${wf_reviewOutcome == 'Send for Re-review'}]]></conditionExpression>
+    </sequenceFlow>
+    <serviceTask id="alfrescoScripttask1" name="Generate Meeting Type (Folder) and move approved agenda and supporting docs in" activiti:class="org.alfresco.repo.workflow.activiti.script.AlfrescoScriptDelegate">
+      <extensionElements>
+        <activiti:field name="script">
+          <activiti:string>logger.log("Creating Meeting type and moving doc into it");
+var agenda = bpm_package.children[0];
+var next_meeting_folder=agenda.parent;
+var doc_lib = next_meeting_folder.parent;
+var today = new Date();
+//var new_meeting_type=doc_lib.createFolder("ITAC Meeting - "+today.getTime(),"copmt:meeting");
+var new_meeting_type=doc_lib.createFolder("Current ITAC Meeting","copmt:meeting");
+if(next_meeting_folder.children){
+var agenda_sd = next_meeting_folder.children;
+logger.log(agenda_sd);
+logger.log(agenda_sd.length);
+len = agenda_sd.length;
+if(agenda_sd){
+for(i=0;i&lt;len;i++){
+agenda_sd[i].move(new_meeting_type);
+}
+}
+}</activiti:string>
+        </activiti:field>
+        <activiti:field name="runAs">
+          <activiti:string>admin</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="flow12" name="Approved by Convenor" sourceRef="exclusivegateway3" targetRef="alfrescoScripttask1">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${wf_reviewOutcome == 'Approve'}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow13" name="Conditionally approved and send for final step" sourceRef="exclusivegateway4" targetRef="alfrescoScripttask1">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${wf_reviewOutcome == 'Conditional Approved'}]]></conditionExpression>
+    </sequenceFlow>
+    <endEvent id="endevent1" name="End"></endEvent>
+    <sequenceFlow id="flow14" sourceRef="alfrescoScripttask1" targetRef="alfrescoUsertask5"></sequenceFlow>
+    <sequenceFlow id="flow15" sourceRef="parallelgateway1" targetRef="alfrescoScripttask5"></sequenceFlow>
+    <serviceTask id="alfrescoScripttask4" name="Send Email to ITAC Group" activiti:class="org.alfresco.repo.workflow.activiti.script.AlfrescoScriptDelegate">
+      <extensionElements>
+        <activiti:field name="script">
+          <activiti:string>var agenda = bpm_package.children[0];
+var agenda_name=agenda.properties["cm:name"];
+len = agenda_name.length;
+if(agenda_name.length&gt;=16){
+sbstring = agenda_name.substr(16);
+sbstring = sbstring.split(".pdf");
+}
+var meeting_date=sbstring[0];
+logger.log("Sending Email to ITAC Group");
+var itac_group = people.getGroup("GROUP_itac");
+if(itac_group){
+var itac_members = people.getMembers(itac_group);         
+}
+for(i=0;i&lt;itac_members.length;i++){
+var mail = actions.create("mail");   
+mail.parameters.to = itac_members[i].properties["cm:email"];   
+mail.parameters.subject = "ITAC Agenda for the meeting to be held on "+meeting_date;   
+mail.parameters.from =initiator.properties.email;   
+mail.parameters.template = companyhome.childByNamePath("Data Dictionary/Email Templates/wf-custom-email.html.ftl");   
+var templateArgs = new Array();
+templateArgs['docId'] = agenda.properties["sys:node-uuid"];
+templateArgs['docName'] = agenda_name;
+templateArgs['meetingDate'] = meeting_date;
+var templateModel = new Array();
+templateModel['args'] = templateArgs;
+mail.parameters.template_model = templateModel;
+mail.execute(agenda); 
+logger.log(itac_members[i].properties["cm:email"]);
+}</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <userTask id="alfrescoUsertask5" name="Distribute Agenda" activiti:assignee="${initiator.properties.userName}" activiti:formKey="itacwf:distributeAgendaTask">
+      <extensionElements>
+        <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string>if (typeof bpm_workflowDueDate != 'undefined') task.setVariableLocal('bpm_dueDate', bpm_workflowDueDate);
+                        if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;</activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="flow16" sourceRef="alfrescoUsertask5" targetRef="parallelgateway1"></sequenceFlow>
+    <userTask id="usertask1" name="CIO Review" activiti:assignee="jon" activiti:formKey="itacwf:cioReviewTask">
+      <extensionElements>
+        <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string>execution.setVariable('wf_reviewOutcome', task.getVariable('itacwf_cioReviewOutcome'));</activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+        <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string>var taskId = "activiti$" + task.getId();
+var taskComment = workflow.getTask(taskId).getProperties()["bpm:comment"];
+logger.log(" @@@ CIO Comment @@@ " + taskComment);
+if(taskComment){
+agenda= bpm_package.children[0];
+logger.log("********** "+agenda.name);
+if(!agenda.hasAspect("fm:discussable")) { agenda.addAspect("fm:discussable"); }
+if(!agenda.hasAspect("fm:commentsRollup")) { agenda.addAspect("fm:commentsRollup"); }
+ 
+var forums = agenda.childAssocs["fm:discussion"];
+var forum;
+if(forums == null) {
+  forum = agenda.createNode(agenda.properties.name+" discussion", "fm:forum", "fm:discussion");
+}
+else {
+  forum = forums[0];
+}
+logger.log(forum);
+ 
+var topics = forum.childAssocs["cm:contains"];
+var topic;
+if(topics == null) {
+  topic = forum.createNode("Comments", "fm:topic", [], "cm:contains", "cm:Comments");
+}
+else {
+  topic = topics[0];
+}
+logger.log(topic);
+ 
+var now = new Date();
+var name = "comment-"+now.getTime();
+var mypost = topic.createNode(name, "fm:post", [], "cm:contains", name);
+ 
+mypost.content = "&lt;p&gt;"+taskComment+"&lt;p&gt;";
+}</activiti:string>
+          </activiti:field>
+          <activiti:field name="runAs">
+            <activiti:string>admin</activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+        <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string>if (typeof bpm_workflowDueDate != 'undefined') task.setVariableLocal('bpm_dueDate', bpm_workflowDueDate);
+                        if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;</activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <serviceTask id="alfrescoScripttask5" name="Send Email to ITAC CC Group" activiti:class="org.alfresco.repo.workflow.activiti.script.AlfrescoScriptDelegate">
+      <extensionElements>
+        <activiti:field name="script">
+          <activiti:string>var agenda = bpm_package.children[0];
+var agenda_name=agenda.properties["cm:name"];
+len = agenda_name.length;
+if(agenda_name.length&gt;=16){
+sbstring = agenda_name.substr(16);
+sbstring = sbstring.split(".pdf");
+}
+var meeting_date=sbstring[0];
+logger.log("Sending Email to ITAC Group");
+var itac_cc_group = people.getGroup("GROUP_itac");
+if(itac_cc_group){
+var itac_cc_members = people.getMembers(itac_cc_group);         
+}
+for(i=0;i&lt;itac_cc_members.length;i++){
+var mail = actions.create("mail");   
+mail.parameters.to = itac_cc_members[i].properties["cm:email"];   
+mail.parameters.subject = "FYI: ITAC Agenda for the meeting to be held on "+meeting_date;   
+mail.parameters.from =initiator.properties.email;   
+mail.parameters.template = companyhome.childByNamePath("Data Dictionary/Email Templates/wf-custom-email.html.ftl");   
+var templateArgs = new Array();
+templateArgs['docId'] = agenda.properties["sys:node-uuid"];
+templateArgs['docName'] = agenda_name;
+templateArgs['meetingDate'] = meeting_date;
+var templateModel = new Array();
+templateModel['args'] = templateArgs;
+mail.parameters.template_model = templateModel;
+mail.execute(agenda); 
+logger.log(itac_cc_members[i].properties["cm:email"]);
+}</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <parallelGateway id="parallelgateway1" name="Parallel Gateway"></parallelGateway>
+    <sequenceFlow id="flow17" sourceRef="parallelgateway1" targetRef="alfrescoScripttask4"></sequenceFlow>
+    <parallelGateway id="parallelgateway2" name="Parallel Gateway"></parallelGateway>
+    <sequenceFlow id="flow18" sourceRef="alfrescoScripttask4" targetRef="parallelgateway2"></sequenceFlow>
+    <sequenceFlow id="flow19" sourceRef="alfrescoScripttask5" targetRef="parallelgateway2"></sequenceFlow>
+    <sequenceFlow id="flow20" sourceRef="parallelgateway2" targetRef="endevent1">
+      <extensionElements>
+        <activiti:executionListener event="take" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string>logger.log("end workflow");
+execution.setVariable("wfstatus","end");</activiti:string>
+          </activiti:field>
+          <activiti:field name="runAs">
+            <activiti:string>admin</activiti:string>
+          </activiti:field>
+        </activiti:executionListener>
+      </extensionElements>
+    </sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_agendaReviewProcess">
+    <bpmndi:BPMNPlane bpmnElement="agendaReviewProcess" id="BPMNPlane_agendaReviewProcess">
+      <bpmndi:BPMNShape bpmnElement="alfrescoStartevent1" id="BPMNShape_alfrescoStartevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="10.0" y="110.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway1" id="BPMNShape_exclusivegateway1">
+        <omgdc:Bounds height="40.0" width="40.0" x="258.0" y="107.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="alfrescoUsertask2" id="BPMNShape_alfrescoUsertask2">
+        <omgdc:Bounds height="55.0" width="105.0" x="374.0" y="100.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="alfrescoUsertask3" id="BPMNShape_alfrescoUsertask3">
+        <omgdc:Bounds height="55.0" width="105.0" x="226.0" y="238.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway2" id="BPMNShape_exclusivegateway2">
+        <omgdc:Bounds height="40.0" width="40.0" x="258.0" y="359.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway3" id="BPMNShape_exclusivegateway3">
+        <omgdc:Bounds height="40.0" width="40.0" x="510.0" y="107.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="alfrescoUsertask4" id="BPMNShape_alfrescoUsertask4">
+        <omgdc:Bounds height="55.0" width="105.0" x="478.0" y="238.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway4" id="BPMNShape_exclusivegateway4">
+        <omgdc:Bounds height="40.0" width="40.0" x="510.0" y="359.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="alfrescoScripttask1" id="BPMNShape_alfrescoScripttask1">
+        <omgdc:Bounds height="93.0" width="214.0" x="621.0" y="81.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent1" id="BPMNShape_endevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="740.0" y="570.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="alfrescoScripttask4" id="BPMNShape_alfrescoScripttask4">
+        <omgdc:Bounds height="55.0" width="141.0" x="538.0" y="450.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask1" id="BPMNShape_usertask1">
+        <omgdc:Bounds height="55.0" width="105.0" x="110.0" y="100.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="alfrescoUsertask5" id="BPMNShape_alfrescoUsertask5">
+        <omgdc:Bounds height="55.0" width="105.0" x="720.0" y="272.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="alfrescoScripttask5" id="BPMNShape_alfrescoScripttask5">
+        <omgdc:Bounds height="55.0" width="137.0" x="700.0" y="450.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="parallelgateway1" id="BPMNShape_parallelgateway1">
+        <omgdc:Bounds height="40.0" width="40.0" x="672.0" y="370.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="parallelgateway2" id="BPMNShape_parallelgateway2">
+        <omgdc:Bounds height="40.0" width="40.0" x="672.0" y="530.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
+        <omgdi:waypoint x="45.0" y="127.0"></omgdi:waypoint>
+        <omgdi:waypoint x="110.0" y="127.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow2" id="BPMNEdge_flow2">
+        <omgdi:waypoint x="215.0" y="127.0"></omgdi:waypoint>
+        <omgdi:waypoint x="258.0" y="127.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow3" id="BPMNEdge_flow3">
+        <omgdi:waypoint x="298.0" y="127.0"></omgdi:waypoint>
+        <omgdi:waypoint x="374.0" y="127.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="83.0" x="-48.0" y="-27.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow4" id="BPMNEdge_flow4">
+        <omgdi:waypoint x="278.0" y="147.0"></omgdi:waypoint>
+        <omgdi:waypoint x="278.0" y="238.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="77.0" x="10.0" y="0.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow5" id="BPMNEdge_flow5">
+        <omgdi:waypoint x="278.0" y="293.0"></omgdi:waypoint>
+        <omgdi:waypoint x="278.0" y="359.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow6" id="BPMNEdge_flow6">
+        <omgdi:waypoint x="258.0" y="379.0"></omgdi:waypoint>
+        <omgdi:waypoint x="162.0" y="379.0"></omgdi:waypoint>
+        <omgdi:waypoint x="162.0" y="155.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="89.0" x="8.0" y="69.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow7" id="BPMNEdge_flow7">
+        <omgdi:waypoint x="298.0" y="379.0"></omgdi:waypoint>
+        <omgdi:waypoint x="424.0" y="379.0"></omgdi:waypoint>
+        <omgdi:waypoint x="426.0" y="155.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="56.0" width="100.0" x="-126.0" y="40.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow8" id="BPMNEdge_flow8">
+        <omgdi:waypoint x="479.0" y="127.0"></omgdi:waypoint>
+        <omgdi:waypoint x="510.0" y="127.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow9" id="BPMNEdge_flow9">
+        <omgdi:waypoint x="530.0" y="147.0"></omgdi:waypoint>
+        <omgdi:waypoint x="530.0" y="238.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="42.0" width="100.0" x="10.0" y="0.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow10" id="BPMNEdge_flow10">
+        <omgdi:waypoint x="530.0" y="293.0"></omgdi:waypoint>
+        <omgdi:waypoint x="530.0" y="359.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow11" id="BPMNEdge_flow11">
+        <omgdi:waypoint x="510.0" y="379.0"></omgdi:waypoint>
+        <omgdi:waypoint x="426.0" y="378.0"></omgdi:waypoint>
+        <omgdi:waypoint x="426.0" y="155.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="89.0" x="4.0" y="76.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow12" id="BPMNEdge_flow12">
+        <omgdi:waypoint x="550.0" y="127.0"></omgdi:waypoint>
+        <omgdi:waypoint x="621.0" y="127.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="42.0" width="100.0" x="-35.0" y="-41.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow13" id="BPMNEdge_flow13">
+        <omgdi:waypoint x="550.0" y="379.0"></omgdi:waypoint>
+        <omgdi:waypoint x="672.0" y="378.0"></omgdi:waypoint>
+        <omgdi:waypoint x="728.0" y="174.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="56.0" width="100.0" x="-122.0" y="42.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow14" id="BPMNEdge_flow14">
+        <omgdi:waypoint x="728.0" y="174.0"></omgdi:waypoint>
+        <omgdi:waypoint x="772.0" y="272.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow15" id="BPMNEdge_flow15">
+        <omgdi:waypoint x="692.0" y="410.0"></omgdi:waypoint>
+        <omgdi:waypoint x="768.0" y="450.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow16" id="BPMNEdge_flow16">
+        <omgdi:waypoint x="772.0" y="327.0"></omgdi:waypoint>
+        <omgdi:waypoint x="692.0" y="370.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow17" id="BPMNEdge_flow17">
+        <omgdi:waypoint x="692.0" y="410.0"></omgdi:waypoint>
+        <omgdi:waypoint x="608.0" y="450.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow18" id="BPMNEdge_flow18">
+        <omgdi:waypoint x="608.0" y="505.0"></omgdi:waypoint>
+        <omgdi:waypoint x="692.0" y="530.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow19" id="BPMNEdge_flow19">
+        <omgdi:waypoint x="768.0" y="505.0"></omgdi:waypoint>
+        <omgdi:waypoint x="692.0" y="530.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow20" id="BPMNEdge_flow20">
+        <omgdi:waypoint x="692.0" y="570.0"></omgdi:waypoint>
+        <omgdi:waypoint x="692.0" y="587.0"></omgdi:waypoint>
+        <omgdi:waypoint x="740.0" y="587.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

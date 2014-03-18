@@ -1,0 +1,2 @@
+log4j.logger.au.gov.wa.cityofperth.documentlibrary.action.evaluator.CheckIfDocIsAgendaTypeEvaluator=trace
+log4j.logger.au.gov.wa.cityofperth.documentlibrary.action.evaluator.CheckIfDocIsMinuteTypeEvaluator=trace

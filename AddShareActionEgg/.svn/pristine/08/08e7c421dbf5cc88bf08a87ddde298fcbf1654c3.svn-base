@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+
+<project name="Itac Meeting" default="main-DEV" basedir=".">
+	
+	<property file="build.properties"/>
+    <property name="repo.root.dir" value="${project.dir}/_repo"/>
+	
+	<target name="main-DEV" depends="dist" description="Distributes to the DEV box only"/>
+	
+	<path id="src.classpath">
+        <dirset dir="${build.dir}"/>
+		<fileset dir="${alfresco.sdk.dir}/exp" includes="**/*.jar"/>
+    </path>
+		
+    <target name="mkdir" depends="clean">
+    	
+    	<mkdir dir="${build.dir}"/>
+    	<mkdir dir="${dist.dir}"/>
+    	
+    	<!-- repo build dirs -->
+    	<mkdir dir="${build.repo.dir}"/>
+    	<mkdir dir="${build.repo.amp.dir}"/>
+    	<mkdir dir="${build.repo.amp.lib.dir}"/>
+    	
+    	<!-- share build dirs -->
+    	<mkdir dir="${build.share.dir}"/>
+    	<mkdir dir="${build.share.amp.dir}"/>
+    	<mkdir dir="${build.share.amp.lib.dir}"/>
+    		
+    	<!-- repo dist dirs -->	
+    	<mkdir dir="${dist.repo.dir}"/>
+    	<mkdir dir="${dist.repo.jar.dir}"/>
+    	<mkdir dir="${dist.repo.amp.dir}"/>
+    	
+    	<!-- share dist dirs -->	
+    	<mkdir dir="${dist.share.dir}"/>
+    	<mkdir dir="${dist.share.jar.dir}"/>
+    	<mkdir dir="${dist.share.amp.dir}"/>
+    	
+    </target>
+
+    <target name="clean">
+        <delete quiet="yes" includeEmptyDirs="true" dir="${build.dir}" />
+    	<delete quiet="yes" includeEmptyDirs="true" dir="${dist.dir}"/>
+    </target>
+	
+	<target name="copy" depends="mkdir">
+    </target>
+	
+	<target name="compile" depends="copy">
+    </target>
+	
+	<target name="jar" depends="compile">
+    </target>
+            	
+	<target name="amp" depends="jar">
+    </target>
+
+    <target name="dist" depends="amp">
+    </target>
+
+</project>

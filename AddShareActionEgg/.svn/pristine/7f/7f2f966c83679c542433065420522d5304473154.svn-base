@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+
+<project name="Itac Meeting" default="main-DEV" basedir=".">
+	
+	<property file="build.properties"/>
+    <property name="repo.root.dir" value="${project.dir}/_repo"/>
+	
+	<target name="main-DEV" depends="dist" description="Distributes to the DEV box only"/>
+	
+	<path id="src.classpath">
+        <dirset dir="${build.dir}"/>
+		<fileset dir="${alfresco.sdk.dir}/exp" includes="**/*.jar"/>
+    </path>
+		
+    <target name="mkdir" depends="clean">
+    	
+    	<mkdir dir="${build.dir}"/>
+    	<mkdir dir="${dist.dir}"/>
+    	
+    	<!-- repo build dirs -->
+    	<mkdir dir="${build.repo.dir}"/>
+    	<mkdir dir="${build.repo.amp.dir}"/>
+    	<mkdir dir="${build.repo.amp.lib.dir}"/>
+    	
+    	<!-- share build dirs -->
+    	<mkdir dir="${build.share.dir}"/>
+    	<mkdir dir="${build.share.amp.dir}"/>
+    	<mkdir dir="${build.share.amp.lib.dir}"/>
+    		
+    	<!-- repo dist dirs -->	
+    	<mkdir dir="${dist.repo.dir}"/>
+    	<mkdir dir="${dist.repo.jar.dir}"/>
+    	<mkdir dir="${dist.repo.amp.dir}"/>
+    	
+    	<!-- share dist dirs -->	
+    	<mkdir dir="${dist.share.dir}"/>
+    	<mkdir dir="${dist.share.jar.dir}"/>
+    	<mkdir dir="${dist.share.amp.dir}"/>
+    	
+    </target>
+
+    <target name="clean">
+        <delete quiet="yes" includeEmptyDirs="true" dir="${build.dir}" />
+    	<delete quiet="yes" includeEmptyDirs="true" dir="${dist.dir}"/>
+    </target>
+	
+	<target name="copy" depends="mkdir">
+    </target>
+	
+	<target name="compile" depends="copy">
+		
+		<!-- compile repo jar -->
+		<javac classpathref="src.classpath"
+           srcdir="${build.repo.dir}"
+           destdir="${build.repo.dir}"
+           debug="true"
+           debuglevel="lines,vars,source"/>
+		
+		<!-- compile share jar -->
+		<javac classpathref="src.classpath"
+           srcdir="${build.share.dir}"
+           destdir="${build.share.dir}"
+           debug="true"
+           debuglevel="lines,vars,source"/>
+		
+    </target>
+	
+	<target name="jar" depends="compile">
+		
+		<!-- repo jar -->
+		<jar destfile="${dist.repo.jar.dir}/${repo.jar.file}">
+            <zipfileset dir="${build.repo.dir}" excludes="**/amp/**" />
+        </jar>
+		
+		<!-- share jar -->
+		<jar destfile="${dist.share.jar.dir}/${share.jar.file}">
+            <zipfileset dir="${build.share.dir}" excludes="**/amp/**" />
+        </jar>
+		
+    </target>
+            	
+	<target name="amp" depends="jar">
+		
+		<!-- copy everything required to package the repo amp -->
+		<copy todir="${build.repo.amp.dir}">
+	    	<fileset dir="${repo.root.dir}" >
+	    		<exclude name="/alfresco/"/>
+	    	</fileset>	
+	    </copy>
+        <copy todir="${build.repo.amp.lib.dir}">
+	    	<fileset dir="${dist.repo.jar.dir}" >
+				<include name="**/*.jar"/>
+			</fileset>
+	    </copy>
+		<zip destfile="${dist.repo.amp.dir}/${repo.amp.file}" basedir="${build.repo.amp.dir}" />
+		
+		<!-- copy everything required to package the share amp -->
+		<copy todir="${build.share.amp.dir}">
+	    	<fileset dir="${share.root.dir}" >
+	    		<exclude name="**/alfresco/**"/>
+	    	</fileset>
+	    </copy>
+        <copy todir="${build.share.amp.lib.dir}">
+	    	<fileset dir="${dist.share.jar.dir}" >
+				<include name="**/*.jar"/>
+			</fileset>
+	    </copy>
+		<zip destfile="${dist.share.amp.dir}/${share.amp.file}" basedir="${build.share.amp.dir}" />
+    </target>
+
+    <target name="dist" depends="amp">
+    </target>
+
+</project>
