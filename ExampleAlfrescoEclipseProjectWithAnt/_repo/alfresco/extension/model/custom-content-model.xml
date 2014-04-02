@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<model name="copblog:copBlogProto" xmlns="http://www.alfresco.org/model/dictionary/1.0">
+
+	<description>Test Content Model for ITAC</description>
+	<author>Luke Grose</author>
+	<version>1.0</version>
+	<imports>
+		<import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d" />
+		<import uri="http://www.alfresco.org/model/content/1.0" prefix="cm" />
+	</imports>
+	
+	<namespaces>
+		<namespace uri="http://www.cityofperth.wa.gov.au/model/blog/1.0" prefix="copblog" />
+	</namespaces>
+	
+	<aspects>
+	
+		<aspect name="copblog:blogMarker">
+			<title>Blog Marker</title>
+			<properties />
+		</aspect>
+		
+	</aspects>
+	
+</model>

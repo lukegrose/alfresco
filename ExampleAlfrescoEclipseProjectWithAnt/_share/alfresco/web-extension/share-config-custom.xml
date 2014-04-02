@@ -1,0 +1,25 @@
+<alfresco-config>
+
+	<config evaluator="string-compare" condition="DocumentLibrary">
+			
+			<aspects>
+				
+				<visible>
+					<aspect name="copblog:blogMarker" />
+		        </visible>
+	
+				<addable>
+					<!-- 
+					<aspect name="copblog:blogMarker" />
+					 -->
+		        </addable>
+	
+				<removeable>
+					<aspect name="copblog:blogMarker" negate="true" />
+				</removeable>
+				
+			</aspects>
+	
+	</config>
+	
+</alfresco-config>
