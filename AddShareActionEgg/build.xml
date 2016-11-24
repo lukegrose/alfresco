@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 
 <!-- Three years of my professional life down the drain -->
+<!-- Not really, I enjoyed the people there a lot -->
 <project name="Add Share Action Egg" default="main-DEV" basedir=".">
 	
 	<property file="build.properties"/>
