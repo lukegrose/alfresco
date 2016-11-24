@@ -3,6 +3,7 @@
 <!-- Three years of my professional life down the drain -->
 <!-- Not really, I enjoyed the people there a lot -->
 <!-- Let's try commiting now -->
+<!-- Will I see this in my local changes -->
 <project name="Add Share Action Egg" default="main-DEV" basedir=".">
 	
 	<property file="build.properties"/>
